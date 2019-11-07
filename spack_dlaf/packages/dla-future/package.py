@@ -12,12 +12,15 @@ class DlaFuture(CMakePackage):
 
     variant('gpu', default=False,
             description='Use the GPU/cuBLAS back end.')
+    variant('test', default=False,
+            description='Run unit tests.')
 
     # Until mpich is default comment this out
     #depends_on('mpi@3:')
     depends_on('mpich')
     depends_on('intel-mkl')
     depends_on('blaspp')
+    depends_on('libtest')
     depends_on('lapackpp')
     depends_on('hpx cxxstd=14 networking=none')
     depends_on('cuda', when='gpu=True')
@@ -28,5 +31,8 @@ class DlaFuture(CMakePackage):
 
        if '+gpu' in spec:
            args.append('-DDLAF_WITH_CUDA=ON')
+
+       if '+test' in spec:
+           args.append('-DDLAF_WITH_TEST=ON')
 
        return args
