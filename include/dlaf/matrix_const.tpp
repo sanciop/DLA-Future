@@ -30,11 +30,10 @@ Matrix<const T, device>::Matrix(matrix::Distribution&& distribution, const matri
 
 template <class T, Device device>
 Matrix<const T, device>::~Matrix() {
-  tile_shared_futures_.clear();
-
-  for (auto&& tile_future : tile_futures_) {
+  for (auto&& tile_manager : tile_managers_) {
     try {
-      tile_future.get();
+      tile_manager.tile_shared_future_ = {};
+      tile_manager.tile_future_.get();
     }
     catch (...) {
       // TODO WARNING
@@ -46,40 +45,23 @@ template <class T, Device device>
 hpx::shared_future<Tile<const T, device>> Matrix<const T, device>::read(
     const LocalTileIndex& index) noexcept {
   std::size_t i = tileLinearIndex(index);
-  if (!tile_shared_futures_[i].valid()) {
-    hpx::future<TileType> old_future = std::move(tile_futures_[i]);
-    hpx::promise<TileType> p;
-    tile_futures_[i] = p.get_future();
-    tile_shared_futures_[i] = std::move(
-        old_future.then(hpx::launch::sync, [p = std::move(p)](hpx::future<TileType>&& fut) mutable {
-          try {
-            return ConstTileType(std::move(fut.get().setPromise(std::move(p))));
-          }
-          catch (...) {
-            auto current_exception_ptr = std::current_exception();
-            p.set_exception(current_exception_ptr);
-            std::rethrow_exception(current_exception_ptr);
-          }
-        }));
-  }
-  return tile_shared_futures_[i];
+  return getReadTileSharedFuture(tile_managers_[i]);
 }
 
 template <class T, Device device>
-Matrix<const T, device>::Matrix(matrix::Distribution&& distribution,
-                                std::vector<hpx::future<TileType>>&& tile_futures,
-                                std::vector<hpx::shared_future<ConstTileType>>&& tile_shared_futures)
-    : MatrixBase(std::move(distribution)), tile_futures_(std::move(tile_futures)),
-      tile_shared_futures_(std::move(tile_shared_futures)) {}
+Matrix<const T, device>::Matrix(
+    matrix::Distribution&& distribution,
+    std::vector<matrix::internal::TileFutureManager<T, device>>&& tile_managers)
+
+    : MatrixBase(std::move(distribution)), tile_managers_(std::move(tile_managers)) {}
 
 template <class T, Device device>
 void Matrix<const T, device>::setUpTiles(const memory::MemoryView<ElementType, device>& mem,
                                          const matrix::LayoutInfo& layout) noexcept {
   const auto& nr_tiles = layout.nrTiles();
-  tile_shared_futures_.resize(futureVectorSize(nr_tiles));
 
-  tile_futures_.clear();
-  tile_futures_.reserve(futureVectorSize(nr_tiles));
+  tile_managers_.clear();
+  tile_managers_.reserve(futureVectorSize(nr_tiles));
 
   using MemView = memory::MemoryView<T, device>;
 
@@ -87,9 +69,9 @@ void Matrix<const T, device>::setUpTiles(const memory::MemoryView<ElementType, d
     for (SizeType i = 0; i < nr_tiles.rows(); ++i) {
       LocalTileIndex ind(i, j);
       TileElementSize tile_size = layout.tileSize(ind);
-      tile_futures_.emplace_back(hpx::make_ready_future(
+      tile_managers_.emplace_back(
           TileType(tile_size, MemView(mem, layout.tileOffset(ind), layout.minTileMemSize(tile_size)),
-                   layout.ldTile())));
+                   layout.ldTile()));
     }
   }
 }

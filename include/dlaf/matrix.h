@@ -13,6 +13,7 @@
 #include <vector>
 #include "dlaf/communication/communicator_grid.h"
 #include "dlaf/matrix/distribution.h"
+#include "dlaf/matrix/internal/tile_future_manager.h"
 #include "dlaf/matrix/layout_info.h"
 #include "dlaf/matrix/matrix_base.h"
 #include "dlaf/tile.h"
@@ -108,8 +109,7 @@ protected:
 
 private:
   using Matrix<const T, device>::setUpTiles;
-  using Matrix<const T, device>::tile_futures_;
-  using Matrix<const T, device>::tile_shared_futures_;
+  using Matrix<const T, device>::tile_managers_;
 };
 
 #include "dlaf/matrix.tpp"
@@ -158,14 +158,13 @@ public:
   }
 
 private:
-  Matrix(matrix::Distribution&& distribution, std::vector<hpx::future<TileType>>&& tile_futures,
-         std::vector<hpx::shared_future<ConstTileType>>&& tile_shared_futures);
+  Matrix(matrix::Distribution&& distribution,
+         std::vector<matrix::internal::TileFutureManager<T, device>>&& tile_managers);
 
   void setUpTiles(const memory::MemoryView<ElementType, device>& mem,
                   const matrix::LayoutInfo& layout) noexcept;
 
-  std::vector<hpx::future<TileType>> tile_futures_;
-  std::vector<hpx::shared_future<ConstTileType>> tile_shared_futures_;
+  std::vector<matrix::internal::TileFutureManager<T, device>> tile_managers_;
 };
 
 #include "dlaf/matrix_const.tpp"

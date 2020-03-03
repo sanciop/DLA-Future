@@ -66,7 +66,7 @@ public:
   /// The tile of the original matrix gets ready.
   /// @pre index.isValid() == true.
   /// @pre index.isIn(distribution().localNrTiles()) == true.
-  /// @post any call to read() with index or the equivalent GlobalTileIndex return an invalid future.
+  /// @post any call to read() with index or the equivalent GlobalTileIndex returns an invalid future.
   void done(const LocalTileIndex& index) noexcept;
 
   /// Notify that all the operation on the @p index tile has been performed.
@@ -74,7 +74,7 @@ public:
   /// The tile of the original matrix gets ready.
   /// @pre index.isValid() == true.
   /// @pre index.isIn(globalNrTiles()) == true.
-  /// @post any call to read() with index or the equivalent LocalTileIndex return an invalid future.
+  /// @post any call to read() with index or the equivalent LocalTileIndex returns an invalid future.
   void done(const GlobalTileIndex& index) noexcept {
     done(distribution().localTileIndex(index));
   }
