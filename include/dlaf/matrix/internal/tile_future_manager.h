@@ -29,6 +29,21 @@ struct TileFutureManager {
   hpx::shared_future<Tile<const T, device>> tile_shared_future_;
 };
 
+template <class ReturnTileType, class TileType>
+hpx::future<ReturnTileType> setPromiseTileFuture(hpx::future<TileType>& old_future,
+                                                 hpx::promise<TileType>& p) {
+  return old_future.then(hpx::launch::sync, [p = std::move(p)](hpx::future<TileType>&& fut) mutable {
+    try {
+      return ReturnTileType(std::move(fut.get().setPromise(std::move(p))));
+    }
+    catch (...) {
+      auto current_exception_ptr = std::current_exception();
+      p.set_exception(current_exception_ptr);
+      std::rethrow_exception(current_exception_ptr);
+    }
+  });
+}
+
 template <class T, Device device>
 hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
     TileFutureManager<T, device>& tile_manager) noexcept {
@@ -39,17 +54,7 @@ hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
     hpx::future<TileType> old_future = std::move(tile_manager.tile_future_);
     hpx::promise<TileType> p;
     tile_manager.tile_future_ = p.get_future();
-    tile_manager.tile_shared_future_ = std::move(
-        old_future.then(hpx::launch::sync, [p = std::move(p)](hpx::future<TileType>&& fut) mutable {
-          try {
-            return ConstTileType(std::move(fut.get().setPromise(std::move(p))));
-          }
-          catch (...) {
-            auto current_exception_ptr = std::current_exception();
-            p.set_exception(current_exception_ptr);
-            std::rethrow_exception(current_exception_ptr);
-          }
-        }));
+    tile_manager.tile_shared_future_ = std::move(setPromiseTileFuture<ConstTileType>(old_future, p));
   }
   return tile_manager.tile_shared_future_;
 }
@@ -62,16 +67,7 @@ hpx::future<Tile<T, device>> getRWTileFuture(TileFutureManager<T, device>& tile_
   hpx::promise<TileType> p;
   tile_manager.tile_future_ = p.get_future();
   tile_manager.tile_shared_future_ = {};
-  return old_future.then(hpx::launch::sync, [p = std::move(p)](hpx::future<TileType>&& fut) mutable {
-    try {
-      return std::move(fut.get().setPromise(std::move(p)));
-    }
-    catch (...) {
-      auto current_exception_ptr = std::current_exception();
-      p.set_exception(current_exception_ptr);
-      std::rethrow_exception(current_exception_ptr);
-    }
-  });
+  return setPromiseTileFuture<TileType>(old_future, p);
 }
 
 }
