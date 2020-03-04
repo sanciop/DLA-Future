@@ -44,6 +44,14 @@ hpx::future<ReturnTileType> setPromiseTileFuture(hpx::future<TileType>& old_futu
   });
 }
 
+template <class ReturnTileType, class TileType>
+hpx::future<ReturnTileType> getTileFuture(hpx::future<TileType>& tile_future) {
+  hpx::future<TileType> old_future = std::move(tile_future);
+  hpx::promise<TileType> p;
+  tile_future = p.get_future();
+  return setPromiseTileFuture<ReturnTileType>(old_future, p);
+}
+
 template <class T, Device device>
 hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
     TileFutureManager<T, device>& tile_manager) noexcept {
@@ -51,10 +59,8 @@ hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
   using ConstTileType = Tile<const T, device>;
 
   if (!tile_manager.tile_shared_future_.valid()) {
-    hpx::future<TileType> old_future = std::move(tile_manager.tile_future_);
-    hpx::promise<TileType> p;
-    tile_manager.tile_future_ = p.get_future();
-    tile_manager.tile_shared_future_ = std::move(setPromiseTileFuture<ConstTileType>(old_future, p));
+    tile_manager.tile_shared_future_ =
+        std::move(getTileFuture<ConstTileType>(tile_manager.tile_future_));
   }
   return tile_manager.tile_shared_future_;
 }
@@ -62,12 +68,8 @@ hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
 template <class T, Device device>
 hpx::future<Tile<T, device>> getRWTileFuture(TileFutureManager<T, device>& tile_manager) noexcept {
   using TileType = Tile<T, device>;
-
-  hpx::future<TileType> old_future = std::move(tile_manager.tile_future_);
-  hpx::promise<TileType> p;
-  tile_manager.tile_future_ = p.get_future();
   tile_manager.tile_shared_future_ = {};
-  return setPromiseTileFuture<TileType>(old_future, p);
+  return getTileFuture<TileType>(tile_manager.tile_future_);
 }
 
 }
