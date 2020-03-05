@@ -9,7 +9,7 @@
 //
 
 #include <hpx/hpx.hpp>
-#include "dlaf/tile.h"
+#include "dlaf/matrix/tile.h"
 
 namespace dlaf {
 namespace matrix {

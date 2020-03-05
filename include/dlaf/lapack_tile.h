@@ -19,10 +19,11 @@
 #undef I
 #endif
 
-#include "dlaf/tile.h"
+#include "dlaf/matrix/tile.h"
 
 namespace dlaf {
 namespace tile {
+using matrix::Tile;
 
 // See LAPACK documentation for more details.
 
