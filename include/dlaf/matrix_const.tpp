@@ -32,8 +32,7 @@ template <class T, Device device>
 Matrix<const T, device>::~Matrix() {
   for (auto&& tile_manager : tile_managers_) {
     try {
-      tile_manager.tile_shared_future_ = {};
-      tile_manager.tile_future_.get();
+      tile_manager.clearSync();
     }
     catch (...) {
       // TODO WARNING
@@ -45,7 +44,7 @@ template <class T, Device device>
 hpx::shared_future<Tile<const T, device>> Matrix<const T, device>::read(
     const LocalTileIndex& index) noexcept {
   std::size_t i = tileLinearIndex(index);
-  return getReadTileSharedFuture(tile_managers_[i]);
+  return tile_managers_[i].getReadTileSharedFuture();
 }
 
 template <class T, Device device>

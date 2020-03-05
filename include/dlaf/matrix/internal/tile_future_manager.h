@@ -15,23 +15,9 @@ namespace dlaf {
 namespace matrix {
 namespace internal {
 
-template <class T, Device device>
-struct TileFutureManager {
-  TileFutureManager() {}
-
-  TileFutureManager(Tile<T, device>&& tile) : tile_future_(hpx::make_ready_future(std::move(tile))) {}
-
-  // The future of the tile with no promise set.
-  hpx::future<Tile<T, device>> tile_future_;
-
-  // If valid, a copy of the shared future of the tile,
-  // which has the promise set to the promise for tile_future_.
-  hpx::shared_future<Tile<const T, device>> tile_shared_future_;
-};
-
 template <class ReturnTileType, class TileType>
 hpx::future<ReturnTileType> setPromiseTileFuture(hpx::future<TileType>& old_future,
-                                                 hpx::promise<TileType>& p) {
+                                                 hpx::promise<TileType>& p) noexcept {
   return old_future.then(hpx::launch::sync, [p = std::move(p)](hpx::future<TileType>&& fut) mutable {
     try {
       return ReturnTileType(std::move(fut.get().setPromise(std::move(p))));
@@ -45,7 +31,7 @@ hpx::future<ReturnTileType> setPromiseTileFuture(hpx::future<TileType>& old_futu
 }
 
 template <class ReturnTileType, class TileType>
-hpx::future<ReturnTileType> getTileFuture(hpx::future<TileType>& tile_future) {
+hpx::future<ReturnTileType> getTileFuture(hpx::future<TileType>& tile_future) noexcept {
   hpx::future<TileType> old_future = std::move(tile_future);
   hpx::promise<TileType> p;
   tile_future = p.get_future();
@@ -53,24 +39,40 @@ hpx::future<ReturnTileType> getTileFuture(hpx::future<TileType>& tile_future) {
 }
 
 template <class T, Device device>
-hpx::shared_future<Tile<const T, device>> getReadTileSharedFuture(
-    TileFutureManager<T, device>& tile_manager) noexcept {
+class TileFutureManager {
+public:
   using TileType = Tile<T, device>;
   using ConstTileType = Tile<const T, device>;
 
-  if (!tile_manager.tile_shared_future_.valid()) {
-    tile_manager.tile_shared_future_ =
-        std::move(getTileFuture<ConstTileType>(tile_manager.tile_future_));
-  }
-  return tile_manager.tile_shared_future_;
-}
+  TileFutureManager() {}
 
-template <class T, Device device>
-hpx::future<Tile<T, device>> getRWTileFuture(TileFutureManager<T, device>& tile_manager) noexcept {
-  using TileType = Tile<T, device>;
-  tile_manager.tile_shared_future_ = {};
-  return getTileFuture<TileType>(tile_manager.tile_future_);
-}
+  TileFutureManager(TileType&& tile) : tile_future_(hpx::make_ready_future(std::move(tile))) {}
+
+  hpx::shared_future<ConstTileType> getReadTileSharedFuture() noexcept {
+    if (!tile_shared_future_.valid()) {
+      tile_shared_future_ = std::move(getTileFuture<ConstTileType>(tile_future_));
+    }
+    return tile_shared_future_;
+  }
+
+  hpx::future<TileType> getRWTileFuture() noexcept {
+    tile_shared_future_ = {};
+    return getTileFuture<TileType>(tile_future_);
+  }
+
+  void clearSync() {
+    tile_shared_future_ = {};
+    tile_future_.get();
+  }
+
+protected:
+  // The future of the tile with no promise set.
+  hpx::future<TileType> tile_future_;
+
+  // If valid, a copy of the shared future of the tile,
+  // which has the promise set to the promise for tile_future_.
+  hpx::shared_future<ConstTileType> tile_shared_future_;
+};
 
 }
 }
