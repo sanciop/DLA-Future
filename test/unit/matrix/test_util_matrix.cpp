@@ -23,18 +23,17 @@
 #include "dlaf_test/util_types.h"
 
 using namespace dlaf;
-using namespace dlaf::comm;
 using namespace dlaf::matrix;
 using namespace dlaf::matrix::test;
 using namespace dlaf_test;
 
 ::testing::Environment* const comm_grids_env =
-    ::testing::AddGlobalTestEnvironment(new dlaf_test::CommunicatorGrid6RanksEnvironment);
+    ::testing::AddGlobalTestEnvironment(new CommunicatorGrid6RanksEnvironment);
 
 template <class T>
 class MatrixUtilsTest : public ::testing::Test {
 public:
-  const std::vector<CommunicatorGrid>& commGrids() {
+  const std::vector<comm::CommunicatorGrid>& commGrids() {
     return comm_grids;
   }
 };
@@ -56,7 +55,7 @@ std::vector<TestSizes> sizes_tests({
     {{16, 24}, {3, 5}},
 });
 
-GlobalElementSize globalTestSize(const LocalElementSize& size, const Size2D& grid_size) {
+GlobalElementSize globalTestSize(const LocalElementSize& size, const comm::Size2D& grid_size) {
   return {size.rows() * grid_size.rows(), size.cols() * grid_size.cols()};
 }
 
@@ -70,12 +69,12 @@ TYPED_TEST(MatrixUtilsTest, Set) {
       Matrix<TypeParam, Device::CPU> matrix(std::move(distribution), layout, mem());
 
       auto linear_matrix = [size = matrix.size()](const GlobalElementIndex& index) {
-        auto linear_index = dlaf::common::computeLinearIndex(dlaf::common::Ordering::RowMajor, index,
+        auto linear_index = common::computeLinearIndex(common::Ordering::RowMajor, index,
                                                              {size.rows(), size.cols()});
         return TypeUtilities<TypeParam>::element(linear_index, linear_index);
       };
 
-      dlaf::matrix::util::set(matrix, linear_matrix);
+      matrix::util::set(matrix, linear_matrix);
 
       CHECK_MATRIX_EQ(linear_matrix, matrix);
     }
@@ -95,7 +94,7 @@ TYPED_TEST(MatrixUtilsTest, SetRandom) {
       memory::MemoryView<TypeParam, Device::CPU> mem(layout.minMemSize());
       Matrix<TypeParam, Device::CPU> matrix(std::move(distribution), layout, mem());
 
-      dlaf::matrix::util::set_random(matrix);
+      matrix::util::set_random(matrix);
 
       CHECK_MATRIX_NEAR(zero, matrix, 0, 1);
     }
@@ -103,8 +102,8 @@ TYPED_TEST(MatrixUtilsTest, SetRandom) {
 }
 
 template <class T>
-void check_is_hermitian(dlaf::Matrix<const T, Device::CPU>& matrix,
-                        dlaf::comm::CommunicatorGrid comm_grid) {
+void check_is_hermitian(Matrix<const T, Device::CPU>& matrix,
+                        comm::CommunicatorGrid comm_grid) {
   const auto& distribution = matrix.distribution();
   const auto current_rank = distribution.rankIndex();
 
@@ -121,24 +120,24 @@ void check_is_hermitian(dlaf::Matrix<const T, Device::CPU>& matrix,
 
       if (current_rank == owner_original) {
         const auto& tile_original = matrix.read(index_tile_original).get();
-        hpx::shared_future<dlaf::Tile<const T, Device::CPU>> tile_transposed;
+        hpx::shared_future<Tile<const T, Device::CPU>> tile_transposed;
 
         if (current_rank == owner_transposed) {
           tile_transposed = matrix.read(index_tile_transposed);
         }
         else {
-          dlaf::Tile<T, Device::CPU> workspace(matrix.blockSize(),
-                                               dlaf::memory::MemoryView<T, Device::CPU>(
+          Tile<T, Device::CPU> workspace(matrix.blockSize(),
+                                               memory::MemoryView<T, Device::CPU>(
                                                    matrix.blockSize().rows() *
                                                    matrix.blockSize().cols()),
                                                matrix.blockSize().rows());
 
           // recv from owner_transposed
           const auto sender_rank = comm_grid.rankFullCommunicator(owner_transposed);
-          dlaf::comm::sync::receive_from(sender_rank, comm_grid.fullCommunicator(), workspace);
+          comm::sync::receive_from(sender_rank, comm_grid.fullCommunicator(), workspace);
 
           tile_transposed =
-              hpx::make_ready_future<dlaf::Tile<const T, Device::CPU>>(std::move(workspace));
+              hpx::make_ready_future<Tile<const T, Device::CPU>>(std::move(workspace));
         }
 
         auto transposed_conj_tile = [&tile_original](const TileElementIndex& index) {
@@ -151,7 +150,7 @@ void check_is_hermitian(dlaf::Matrix<const T, Device::CPU>& matrix,
       else if (current_rank == owner_transposed) {
         // send to owner_original
         auto receiver_rank = comm_grid.rankFullCommunicator(owner_original);
-        dlaf::comm::sync::send_to(receiver_rank, comm_grid.fullCommunicator(),
+        comm::sync::send_to(receiver_rank, comm_grid.fullCommunicator(),
                                   matrix.read(index_tile_transposed).get());
       }
     }
@@ -166,7 +165,7 @@ TYPED_TEST(MatrixUtilsTest, SetRandomHermitianPositiveDefinite) {
       {{4, 4}, {13, 13}},  // square matrix single block
   });
 
-  auto globalSquareTestSize = [](const LocalElementSize& size, const Size2D& grid_size) {
+  auto globalSquareTestSize = [](const LocalElementSize& size, const comm::Size2D& grid_size) {
     auto k = std::max(grid_size.rows(), grid_size.cols());
     return GlobalElementSize{size.rows() * k, size.cols() * k};
   };
@@ -186,7 +185,7 @@ TYPED_TEST(MatrixUtilsTest, SetRandomHermitianPositiveDefinite) {
         return dlaf_test::TypeUtilities<TypeParam>::element(0, 0);
       };
 
-      dlaf::matrix::util::set_random_hermitian_positive_definite(matrix);
+      matrix::util::set_random_hermitian_positive_definite(matrix);
 
       CHECK_MATRIX_NEAR(identity_2N, matrix, 0, 1);
 

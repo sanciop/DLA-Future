@@ -203,8 +203,6 @@ auto create_buffer(const Tile<T, device>& tile) {
 }
 
 }
-// Make dlaf::matrix::Tile available as dlaf::Tile.
-using matrix::Tile;
 }
 
 #include <dlaf/matrix/tile.tpp>
