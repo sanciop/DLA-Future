@@ -69,8 +69,8 @@ TYPED_TEST(MatrixUtilsTest, Set) {
       Matrix<TypeParam, Device::CPU> matrix(std::move(distribution), layout, mem());
 
       auto linear_matrix = [size = matrix.size()](const GlobalElementIndex& index) {
-        auto linear_index = common::computeLinearIndex(common::Ordering::RowMajor, index,
-                                                             {size.rows(), size.cols()});
+        auto linear_index =
+            common::computeLinearIndex(common::Ordering::RowMajor, index, {size.rows(), size.cols()});
         return TypeUtilities<TypeParam>::element(linear_index, linear_index);
       };
 
@@ -102,8 +102,7 @@ TYPED_TEST(MatrixUtilsTest, SetRandom) {
 }
 
 template <class T>
-void check_is_hermitian(Matrix<const T, Device::CPU>& matrix,
-                        comm::CommunicatorGrid comm_grid) {
+void check_is_hermitian(Matrix<const T, Device::CPU>& matrix, comm::CommunicatorGrid comm_grid) {
   const auto& distribution = matrix.distribution();
   const auto current_rank = distribution.rankIndex();
 
@@ -127,17 +126,15 @@ void check_is_hermitian(Matrix<const T, Device::CPU>& matrix,
         }
         else {
           Tile<T, Device::CPU> workspace(matrix.blockSize(),
-                                               memory::MemoryView<T, Device::CPU>(
-                                                   matrix.blockSize().rows() *
-                                                   matrix.blockSize().cols()),
-                                               matrix.blockSize().rows());
+                                         memory::MemoryView<T, Device::CPU>(matrix.blockSize().rows() *
+                                                                            matrix.blockSize().cols()),
+                                         matrix.blockSize().rows());
 
           // recv from owner_transposed
           const auto sender_rank = comm_grid.rankFullCommunicator(owner_transposed);
           comm::sync::receive_from(sender_rank, comm_grid.fullCommunicator(), workspace);
 
-          tile_transposed =
-              hpx::make_ready_future<Tile<const T, Device::CPU>>(std::move(workspace));
+          tile_transposed = hpx::make_ready_future<Tile<const T, Device::CPU>>(std::move(workspace));
         }
 
         auto transposed_conj_tile = [&tile_original](const TileElementIndex& index) {
@@ -151,7 +148,7 @@ void check_is_hermitian(Matrix<const T, Device::CPU>& matrix,
         // send to owner_original
         auto receiver_rank = comm_grid.rankFullCommunicator(owner_original);
         comm::sync::send_to(receiver_rank, comm_grid.fullCommunicator(),
-                                  matrix.read(index_tile_transposed).get());
+                            matrix.read(index_tile_transposed).get());
       }
     }
   }
