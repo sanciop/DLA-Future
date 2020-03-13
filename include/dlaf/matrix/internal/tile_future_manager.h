@@ -66,12 +66,111 @@ public:
   }
 
 protected:
+  TileFutureManager(hpx::future<TileType>&& tile_future,
+                    hpx::shared_future<ConstTileType>&& tile_shared_future)
+      : tile_future_(std::move(tile_future)), tile_shared_future_(std::move(tile_shared_future)) {}
+
   // The future of the tile with no promise set.
   hpx::future<TileType> tile_future_;
 
   // If valid, a copy of the shared future of the tile,
   // which has the promise set to the promise for tile_future_.
   hpx::shared_future<ConstTileType> tile_shared_future_;
+};
+
+enum class TileStatus { None = 0, Read = 1, RW = 2 };
+
+template <class T, Device device>
+class ViewTileFutureManager : private TileFutureManager<T, device> {
+  using TileManagerType = TileFutureManager<T, device>;
+
+public:
+  using typename TileManagerType::TileType;
+  using typename TileManagerType::ConstTileType;
+
+  ViewTileFutureManager() {}
+
+  ViewTileFutureManager(TileManagerType& tile_manager, bool /* force_RW */)
+      : TileManagerType(), tile_promise_(), tile_shared_promise_() {
+    tile_future_ = std::move(tile_promise_.get_future());
+    tile_shared_future_ = std::move(tile_shared_promise_.get_future());
+
+    TileManagerType& base = *this;
+    std::swap(tile_manager, base);
+
+    tile_status_ = TileStatus::RW;
+    assert(tile_future_.valid());
+  }
+
+  ViewTileFutureManager(ViewTileFutureManager& tile_manager, bool force_RW)
+      : TileManagerType(), tile_promise_(), tile_shared_promise_() {
+    if (tile_manager.status() == TileStatus::RW) {
+      tile_future_ = std::move(tile_manager.tile_future_);
+      tile_shared_future_ = std::move(tile_manager.tile_shared_future_);
+      tile_manager.tile_future_ = std::move(tile_promise_.get_future());
+      tile_manager.tile_shared_future_ = std::move(tile_shared_promise_.get_future());
+    }
+    else {
+      assert(!force_RW);
+
+      if (tile_manager.status() == TileStatus::Read)
+        tile_shared_future_ = tile_manager.getReadTileSharedFuture();
+    }
+
+    tile_status_ = tile_manager.status();
+  }
+
+  ViewTileFutureManager(ViewTileFutureManager&& tile_manager) noexcept
+      : TileManagerType(std::move(tile_manager)), tile_status_(tile_manager.tile_status_),
+        tile_promise_(std::move(tile_manager.tile_promise_)),
+        tile_shared_promise_(std::move(tile_manager.tile_shared_promise_)) {
+    tile_manager.tile_status_ = TileStatus::None;
+  }
+
+  ~ViewTileFutureManager() {
+    release();
+  }
+
+  hpx::shared_future<ConstTileType> getReadTileSharedFuture() noexcept {
+    assert(tile_status_ != TileStatus::None);
+    return TileManagerType::getReadTileSharedFuture();
+  }
+
+  hpx::future<TileType> getRWTileFuture() noexcept {
+    assert(tile_status_ == TileStatus::RW);
+    return TileManagerType::getRWTileFuture();
+  }
+
+  void makeRead() {
+    if (tile_status_ == TileStatus::RW) {
+      tile_status_ = TileStatus::Read;
+      tile_shared_future_ = std::move(setPromiseTileFuture<ConstTileType>(tile_future_, tile_promise_));
+      // TODO add new tile for shared future...
+    }
+  }
+
+  TileStatus status() {
+    return tile_status_;
+  }
+
+  void release() {
+    makeRead();
+
+    tile_status_ = TileStatus::None;
+    tile_shared_future_ = {};
+  }
+
+private:
+  using TileManagerType::tile_future_;
+  using TileManagerType::tile_shared_future_;
+
+  TileStatus tile_status_;
+
+  // promise to set tile_future_ in the original matrix.
+  hpx::promise<TileType> tile_promise_;
+
+  // promise to set tile_shared_future_ in the original matrix.
+  hpx::promise<ConstTileType> tile_shared_promise_;
 };
 
 }

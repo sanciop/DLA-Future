@@ -12,15 +12,14 @@ namespace dlaf {
 namespace matrix {
 
 template <class T, Device device>
-Matrix<const T, device>::Matrix(const matrix::LayoutInfo& layout, ElementType* ptr)
+Matrix<const T, device>::Matrix(const LayoutInfo& layout, ElementType* ptr)
     : MatrixBase({layout.size(), layout.blockSize()}) {
   memory::MemoryView<ElementType, device> mem(ptr, layout.minMemSize());
   setUpTiles(mem, layout);
 }
 
 template <class T, Device device>
-Matrix<const T, device>::Matrix(matrix::Distribution&& distribution, const matrix::LayoutInfo& layout,
-                                ElementType* ptr)
+Matrix<const T, device>::Matrix(Distribution&& distribution, const LayoutInfo& layout, ElementType* ptr)
     : MatrixBase(std::move(distribution)) {
   if (this->distribution().localSize() != layout.size())
     throw std::invalid_argument("Error: distribution.localSize() != layout.size()");
@@ -46,20 +45,18 @@ Matrix<const T, device>::~Matrix() {
 template <class T, Device device>
 hpx::shared_future<Tile<const T, device>> Matrix<const T, device>::read(
     const LocalTileIndex& index) noexcept {
-  std::size_t i = tileLinearIndex(index);
-  return tile_managers_[i].getReadTileSharedFuture();
+  return tileManager(index).getReadTileSharedFuture();
 }
 
 template <class T, Device device>
-Matrix<const T, device>::Matrix(
-    matrix::Distribution&& distribution,
-    std::vector<matrix::internal::TileFutureManager<T, device>>&& tile_managers)
+Matrix<const T, device>::Matrix(Distribution&& distribution,
+                                std::vector<internal::TileFutureManager<T, device>>&& tile_managers)
 
     : MatrixBase(std::move(distribution)), tile_managers_(std::move(tile_managers)) {}
 
 template <class T, Device device>
 void Matrix<const T, device>::setUpTiles(const memory::MemoryView<ElementType, device>& mem,
-                                         const matrix::LayoutInfo& layout) noexcept {
+                                         const LayoutInfo& layout) noexcept {
   const auto& nr_tiles = layout.nrTiles();
 
   tile_managers_.clear();
@@ -76,6 +73,13 @@ void Matrix<const T, device>::setUpTiles(const memory::MemoryView<ElementType, d
                    layout.ldTile()));
     }
   }
+}
+
+template <class T, Device device>
+internal::TileFutureManager<T, device>& Matrix<const T, device>::tileManager(
+    const LocalTileIndex& index) {
+  std::size_t i = tileLinearIndex(index);
+  return tile_managers_[i];
 }
 
 }

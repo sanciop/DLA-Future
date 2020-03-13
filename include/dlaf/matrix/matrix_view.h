@@ -27,7 +27,7 @@ template <class T, Device device>
 class MatrixView;
 
 template <class T, Device device>
-class MatrixView<const T, device> : public matrix::internal::MatrixBase {
+class MatrixView<const T, device> : public internal::MatrixBase {
 public:
   using ElementType = T;
   using TileType = Tile<ElementType, device>;
@@ -35,7 +35,7 @@ public:
 
   template <template <class, Device> class MatrixType, class T2,
             std::enable_if_t<std::is_same<T, std::remove_const_t<T2>>::value, int> = 0>
-  MatrixView(blas::Uplo uplo, MatrixType<T2, device>& matrix);
+  MatrixView(blas::Uplo uplo, MatrixType<T2, device>& matrix, bool force_R);
 
   MatrixView(const MatrixView& rhs) = delete;
   MatrixView(MatrixView&& rhs) = default;
@@ -82,18 +82,20 @@ public:
 private:
   template <template <class, Device> class MatrixType, class T2,
             std::enable_if_t<std::is_same<T, std::remove_const_t<T2>>::value, int> = 0>
-  void setUpTiles(MatrixType<T2, device>& matrix) noexcept;
+  void setUpTiles(MatrixType<T2, device>& matrix, bool force_R) noexcept;
 
   std::vector<hpx::shared_future<ConstTileType>> tile_shared_futures_;
 };
 
 template <template <class, Device> class MatrixType, class T, Device device>
-MatrixView<std::add_const_t<T>, device> getConstView(blas::Uplo uplo, MatrixType<T, device>& matrix) {
-  return MatrixView<std::add_const_t<T>, device>(uplo, matrix);
+MatrixView<std::add_const_t<T>, device> getConstView(blas::Uplo uplo, MatrixType<T, device>& matrix,
+                                                     bool force_R = true) {
+  return MatrixView<std::add_const_t<T>, device>(uplo, matrix, force_R);
 }
 
 template <template <class, Device> class MatrixType, class T, Device device>
-MatrixView<std::add_const_t<T>, device> getConstView(MatrixType<T, device>& matrix) {
+MatrixView<std::add_const_t<T>, device> getConstView(MatrixType<T, device>& matrix,
+                                                     bool force_R = true) {
   return getConstView(blas::Uplo::General, matrix);
 }
 
