@@ -144,8 +144,45 @@ public:
   void makeRead() {
     if (tile_status_ == TileStatus::RW) {
       tile_status_ = TileStatus::Read;
-      tile_shared_future_ = std::move(setPromiseTileFuture<ConstTileType>(tile_future_, tile_promise_));
-      // TODO add new tile for shared future...
+
+      auto sf = getReadTileSharedFuture();
+
+      hpx::promise<TileType> p;
+      auto future = p.get_future();
+
+      // Set the original matrix shared future to a duplicate of the view shared_future.
+      sf.then(  //
+          hpx::launch::sync, [p = std::move(p), sp = std::move(tile_shared_promise_)](
+                                 const hpx::shared_future<ConstTileType>& sf) mutable {
+            try {
+              const auto& original_tile = sf.get();
+              auto memory_view_copy = original_tile.memory_view_;
+              TileType tile(original_tile.size_, std::move(memory_view_copy), original_tile.ld_);
+              tile.setPromise(std::move(p));
+              sp.set_value(ConstTileType(std::move(tile)));
+            }
+            catch (...) {
+              p.set_exception(std::current_exception());
+              sp.set_exception(std::current_exception());
+            }
+          });
+
+      // Set the original matrix future as ready only whe both the view shared_future
+      // and the original matrix shared_future have been destroyed.
+      hpx::dataflow(
+          hpx::launch::sync,
+          [p = std::move(tile_promise_)](hpx::future<TileType>&& future1,
+                                         hpx::future<TileType>&& future2) mutable {
+            try {
+              auto tile = future1.get();
+              future2.get();
+              p.set_value(std::move(tile));
+            }
+            catch (...) {
+              p.set_exception(std::current_exception());
+            }
+          },
+          tile_future_, future);
     }
   }
 
@@ -172,7 +209,6 @@ private:
   // promise to set tile_shared_future_ in the original matrix.
   hpx::promise<ConstTileType> tile_shared_promise_;
 };
-
 }
 }
 }
