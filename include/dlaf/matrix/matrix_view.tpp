@@ -27,8 +27,7 @@ hpx::shared_future<Tile<const T, device>> MatrixView<T, device>::read(
 }
 
 template <class T, Device device>
-hpx::future<Tile<T, device>> MatrixView<T, device>::operator()(
-    const LocalTileIndex& index) noexcept {
+hpx::future<Tile<T, device>> MatrixView<T, device>::operator()(const LocalTileIndex& index) noexcept {
   return tileManager(index).getRWTileFuture();
 }
 
@@ -57,10 +56,11 @@ void MatrixView<T, device>::setUpTiles(MatrixType<T, device>& matrix, bool force
 }
 
 template <class T, Device device>
-  internal::ViewTileFutureManager<T, device>& MatrixView<T, device>::tileManager(const LocalTileIndex& index) {
-    std::size_t i = tileLinearIndex(index);
-    return tile_managers_[i];
-  }
+internal::ViewTileFutureManager<T, device>& MatrixView<T, device>::tileManager(
+    const LocalTileIndex& index) {
+  std::size_t i = tileLinearIndex(index);
+  return tile_managers_[i];
+}
 
 }
 }
