@@ -11,3 +11,6 @@
 add_executable(miniapp_cholesky miniapp_cholesky.cpp)
 target_link_libraries(miniapp_cholesky PRIVATE DLAF DLAF_test)
 target_add_warnings(miniapp_cholesky)
+
+add_executable(gpu_cholesky gpu_cholesky.cpp)
+target_link_libraries(gpu_cholesky PRIVATE DLAF)
