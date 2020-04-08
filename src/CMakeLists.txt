@@ -63,6 +63,8 @@ target_link_libraries(DLAF
     ${LAPACK_TARGET}
     lapackpp
     blaspp
+    $<TARGET_NAME_IF_EXISTS:dlaf::cublas>
+    $<TARGET_NAME_IF_EXISTS:dlaf::cudart>
 )
 
 target_compile_features(DLAF PUBLIC cxx_std_14)
@@ -70,13 +72,10 @@ target_compile_features(DLAF PUBLIC cxx_std_14)
 target_add_warnings(DLAF)
 
 # ----- Options, Flags, Defines, ...
-# DLAF_FUNCTION_NAME
+
+# Check for pretty function support
 include(CheckCXXSourceCompiles)
 check_cxx_source_compiles("int main() { const char *name = __PRETTY_FUNCTION__; }" is_pretty_function_available)
-
-target_compile_definitions(DLAF PUBLIC
-  DLAF_FUNCTION_NAME=$<IF:$<BOOL:is_pretty_function_available>,__PRETTY_FUNCTION__,__func__>
-)
 
 # Assertions
 if (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -97,6 +96,8 @@ target_compile_definitions(DLAF PUBLIC
   $<$<BOOL:${DLAF_ASSERT_ENABLE}>:DLAF_ASSERT_ENABLE>
   $<$<BOOL:${DLAF_ASSERT_MODERATE_ENABLE}>:DLAF_ASSERT_MODERATE_ENABLE>
   $<$<BOOL:${DLAF_ASSERT_HEAVY_ENABLE}>:DLAF_ASSERT_HEAVY_ENABLE>
+  DLAF_FUNCTION_NAME=$<IF:$<BOOL:is_pretty_function_available>,__PRETTY_FUNCTION__,__func__>
+  $<$<BOOL:${DLAF_WITH_CUDA}>:DLAF_WITH_CUDA>
 )
 
 # ----- DEPLOY
