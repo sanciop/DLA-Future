@@ -14,7 +14,7 @@ class Blaspp(CMakePackage):
     hg       = "https://bitbucket.org/icl/blaspp"
     maintainers = ['Sely85']
 
-    version('develop', hg=hg, revision="86ccadd")
+    version('develop', hg=hg)
 
 
     variant('ifort',
