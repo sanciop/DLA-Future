@@ -37,13 +37,28 @@ add_library(DLAF
   communication/communicator.cpp
   communication/communicator_grid.cpp
   communication/datatypes.cpp
-  factorization/mc.cpp
+  factorization/mc_eti_s.cpp
+  factorization/mc_eti_c.cpp
+  factorization/mc_eti_d.cpp
+  factorization/mc_eti_z.cpp
   matrix/distribution.cpp
   matrix/layout_info.cpp
-  matrix.cpp
-  memory/memory_view.cpp
-  tile.cpp
-  solver/mc.cpp
+  matrix_eti_s.cpp
+  matrix_eti_c.cpp
+  matrix_eti_d.cpp
+  matrix_eti_z.cpp
+  memory/memory_view_eti_s.cpp
+  memory/memory_view_eti_c.cpp
+  memory/memory_view_eti_d.cpp
+  memory/memory_view_eti_z.cpp
+  tile_eti_s.cpp
+  tile_eti_c.cpp
+  tile_eti_d.cpp
+  tile_eti_z.cpp
+  solver/mc_eti_s.cpp
+  solver/mc_eti_c.cpp
+  solver/mc_eti_d.cpp
+  solver/mc_eti_z.cpp
 )
 
 target_include_directories(DLAF
