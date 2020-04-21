@@ -101,3 +101,6 @@ option(BUILD_DOC "Build documentation" OFF)
 if (BUILD_DOC)
   add_subdirectory(doc)
 endif()
+
+add_executable(example test2.cpp)
+target_link_libraries(example PRIVATE DLAF)
