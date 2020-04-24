@@ -81,8 +81,26 @@ function(DLAF_addTest test_target_name)
     set(IS_AN_HPX_TEST TRUE)
   endif()
 
-  ### Test executable target
-  add_executable(${test_target_name} ${DLAF_AT_SOURCES})
+  if(DLAF_COMBINE_NON_MPI_TESTS AND DLAF_AT_USE_MAIN STREQUAL PLAIN)
+    set(test_target_name "test_combined_plain")
+    if(TARGET ${test_target_name})
+      target_sources(${test_target_name} PRIVATE ${DLAF_AT_SOURCES})
+      return()
+    else()
+      add_executable(${test_target_name} ${DLAF_AT_SOURCES})
+    endif()
+  elseif(DLAF_COMBINE_NON_MPI_TESTS AND DLAF_AT_USE_MAIN STREQUAL HPX)
+    set(test_target_name "test_combined_hpx")
+    if(TARGET ${test_target_name})
+      target_sources(${test_target_name} PRIVATE ${DLAF_AT_SOURCES})
+      return()
+    else()
+      add_executable(${test_target_name} ${DLAF_AT_SOURCES})
+    endif()
+  else()
+    ### Test executable target
+    add_executable(${test_target_name} ${DLAF_AT_SOURCES})
+  endif()
 
   if (DLAF_AT_COMPILE_DEFINITIONS)
     target_compile_definitions(${test_target_name}

@@ -14,7 +14,7 @@
 #include "blas.hh"
 
 namespace blas {
-std::ostream& operator<<(std::ostream& stream, const blas::Diag& diag) {
+inline std::ostream& operator<<(std::ostream& stream, const blas::Diag& diag) {
   switch (diag) {
     case blas::Diag::Unit:
       stream << "Unit";
@@ -25,7 +25,7 @@ std::ostream& operator<<(std::ostream& stream, const blas::Diag& diag) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, const blas::Side& side) {
+inline std::ostream& operator<<(std::ostream& stream, const blas::Side& side) {
   switch (side) {
     case blas::Side::Left:
       stream << "Left";
@@ -37,7 +37,7 @@ std::ostream& operator<<(std::ostream& stream, const blas::Side& side) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, const blas::Op& trans) {
+inline std::ostream& operator<<(std::ostream& stream, const blas::Op& trans) {
   switch (trans) {
     case blas::Op::NoTrans:
       stream << "NoTrans";
@@ -52,7 +52,7 @@ std::ostream& operator<<(std::ostream& stream, const blas::Op& trans) {
   return stream;
 }
 
-std::ostream& operator<<(std::ostream& stream, const blas::Uplo& uplo) {
+inline std::ostream& operator<<(std::ostream& stream, const blas::Uplo& uplo) {
   switch (uplo) {
     case blas::Uplo::Lower:
       stream << "Lower";
