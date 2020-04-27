@@ -8,13 +8,35 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
-DLAF_addTest(test_util_math SOURCES test_util_math.cpp USE_MAIN PLAIN)
+DLAF_addTest(test_util_math
+  SOURCES test_util_math.cpp
+  USE_MAIN PLAIN
+  TEST_GROUP test_combined_plain
+)
 
-DLAF_addTest(test_blas_tile SOURCES test_blas_tile.cpp USE_MAIN HPX)
-DLAF_addTest(test_lapack_tile SOURCES test_lapack_tile.cpp USE_MAIN HPX)
-DLAF_addTest(test_tile SOURCES test_tile.cpp USE_MAIN HPX)
+DLAF_addTest(test_blas_tile
+  SOURCES test_blas_tile.cpp
+  USE_MAIN HPX
+  TEST_GROUP test_combined_hpx
+  )
 
-DLAF_addTest(test_matrix SOURCES test_matrix.cpp USE_MAIN MPIHPX MPIRANKS 6)
+DLAF_addTest(test_lapack_tile
+  SOURCES test_lapack_tile.cpp
+  USE_MAIN HPX
+  TEST_GROUP test_combined_hpx
+)
+
+DLAF_addTest(test_tile
+  SOURCES test_tile.cpp
+  USE_MAIN HPX
+  TEST_GROUP test_combined_hpx
+)
+
+DLAF_addTest(test_matrix
+  SOURCES test_matrix.cpp
+  USE_MAIN MPIHPX
+  MPIRANKS 6
+)
 
 # Generic libraries
 add_subdirectory(common)

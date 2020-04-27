@@ -12,40 +12,47 @@ DLAF_addTest(test_message
   SOURCES test_message.cpp
   MPIRANKS 2
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_2
 )
 
 DLAF_addTest(test_communicator
   SOURCES test_communicator.cpp
   MPIRANKS 4
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_4
 )
 
 DLAF_addTest(test_communicator_grid
   SOURCES test_communicator_grid.cpp
   MPIRANKS 6
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_6
 )
 
 DLAF_addTest(test_broadcast
   SOURCES test_broadcast.cpp
   MPIRANKS 5
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_5
 )
 
 DLAF_addTest(test_reduce
   SOURCES test_reduce.cpp
   MPIRANKS 4
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_4
 )
 
 DLAF_addTest(test_broadcast_tile
   SOURCES test_broadcast_tile.cpp
   MPIRANKS 5
   USE_MAIN MPI
+  TEST_GROUP test_combined_mpi_5
 )
 
 DLAF_addTest(test_broadcast_matrix
   SOURCES test_broadcast_matrix.cpp
   MPIRANKS 4
   USE_MAIN MPIHPX
+  TEST_GROUP test_combined_mpihpx_4
 )

@@ -8,5 +8,14 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 
-DLAF_addTest(test_memory_chunk SOURCES test_memory_chunk.cpp USE_MAIN PLAIN)
-DLAF_addTest(test_memory_view SOURCES test_memory_view.cpp USE_MAIN PLAIN)
+DLAF_addTest(test_memory_chunk
+  SOURCES test_memory_chunk.cpp
+  USE_MAIN PLAIN
+  TEST_GROUP test_combined_plain
+)
+
+DLAF_addTest(test_memory_view
+  SOURCES test_memory_view.cpp
+  USE_MAIN PLAIN
+  TEST_GROUP test_combined_plain
+)
