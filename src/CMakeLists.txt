@@ -40,9 +40,10 @@ add_library(DLAF
   factorization/mc.cpp
   matrix/distribution.cpp
   matrix/layout_info.cpp
+  matrix/matrix_view.cpp
   matrix.cpp
+  matrix/tile.cpp
   memory/memory_view.cpp
-  tile.cpp
   solver/mc.cpp
 )
 
