@@ -19,86 +19,32 @@ namespace comm {
 
 /// @brief mapper between language types and basic MPI_Datatype
 template <typename T>
-struct mpi_datatype;
+struct mpi_datatype {
+  static MPI_Datatype type;
+};
 
-/// helper for mapping also custom types
+/// helper for mapping also const types
 template <typename T>
 struct mpi_datatype<const T> : public mpi_datatype<T> {};
 
-template <>
-struct mpi_datatype<char> {
-  static constexpr MPI_Datatype type = MPI_CHAR;
-};
-
-template <>
-struct mpi_datatype<short> {
-  static constexpr MPI_Datatype type = MPI_SHORT;
-};
-
-template <>
-struct mpi_datatype<int> {
-  static constexpr MPI_Datatype type = MPI_INT;
-};
-
-template <>
-struct mpi_datatype<long> {
-  static constexpr MPI_Datatype type = MPI_LONG;
-};
-
-template <>
-struct mpi_datatype<long long> {
-  static constexpr MPI_Datatype type = MPI_LONG_LONG;
-};
-
-template <>
-struct mpi_datatype<unsigned char> {
-  static constexpr MPI_Datatype type = MPI_UNSIGNED_CHAR;
-};
-
-template <>
-struct mpi_datatype<unsigned short> {
-  static constexpr MPI_Datatype type = MPI_UNSIGNED_SHORT;
-};
-
-template <>
-struct mpi_datatype<unsigned int> {
-  static constexpr MPI_Datatype type = MPI_UNSIGNED;
-};
-
-template <>
-struct mpi_datatype<unsigned long> {
-  static constexpr MPI_Datatype type = MPI_UNSIGNED_LONG;
-};
-
-template <>
-struct mpi_datatype<unsigned long long> {
-  static constexpr MPI_Datatype type = MPI_UNSIGNED_LONG_LONG;
-};
-
-template <>
-struct mpi_datatype<float> {
-  static constexpr MPI_Datatype type = MPI_FLOAT;
-};
-
-template <>
-struct mpi_datatype<double> {
-  static constexpr MPI_Datatype type = MPI_DOUBLE;
-};
-
-template <>
-struct mpi_datatype<bool> {
-  static constexpr MPI_Datatype type = MPI_CXX_BOOL;
-};
-
-template <>
-struct mpi_datatype<std::complex<float>> {
-  static constexpr MPI_Datatype type = MPI_CXX_FLOAT_COMPLEX;
-};
-
-template <>
-struct mpi_datatype<std::complex<double>> {
-  static constexpr MPI_Datatype type = MPI_CXX_DOUBLE_COMPLEX;
-};
+// Forward declare specializations
+// clang-format off
+template<> MPI_Datatype mpi_datatype<char>                 ::type;
+template<> MPI_Datatype mpi_datatype<short>                ::type;
+template<> MPI_Datatype mpi_datatype<int>                  ::type;
+template<> MPI_Datatype mpi_datatype<long>                 ::type;
+template<> MPI_Datatype mpi_datatype<long long>            ::type;
+template<> MPI_Datatype mpi_datatype<unsigned char>        ::type;
+template<> MPI_Datatype mpi_datatype<unsigned short>       ::type;
+template<> MPI_Datatype mpi_datatype<unsigned int>         ::type;
+template<> MPI_Datatype mpi_datatype<unsigned long>        ::type;
+template<> MPI_Datatype mpi_datatype<unsigned long long>   ::type;
+template<> MPI_Datatype mpi_datatype<float>                ::type;
+template<> MPI_Datatype mpi_datatype<double>               ::type;
+template<> MPI_Datatype mpi_datatype<bool>                 ::type;
+template<> MPI_Datatype mpi_datatype<std::complex<float>>  ::type;
+template<> MPI_Datatype mpi_datatype<std::complex<double>> ::type;
+// clang-format on
 
 }
 }

@@ -23,10 +23,10 @@ using namespace dlaf::matrix::test;
 using namespace dlaf_test;
 using namespace testing;
 
-std::vector<SizeType> sizes({0, 1, 13, 32});
-SizeType m = 37;
-SizeType n = 87;
-SizeType ld = 133;
+const std::vector<SizeType> sizes({0, 1, 13, 32});
+constexpr SizeType m = 37;
+constexpr SizeType n = 87;
+constexpr SizeType ld = 133;
 
 std::size_t elIndex(TileElementIndex index, SizeType ld) {
   using util::size_t::sum;
@@ -62,9 +62,9 @@ TYPED_TEST(TileTest, Constructor) {
 
   for (const auto m : sizes) {
     for (const auto n : sizes) {
-      SizeType min_ld = std::max(1, m);
+      SizeType min_ld = std::max<SizeType>(1, m);
       for (const SizeType ld : {min_ld, min_ld + 64}) {
-        memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+        memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
         TileElementSize size(m, n);
         for (SizeType j = 0; j < size.cols(); ++j) {
           for (SizeType i = 0; i < size.rows(); ++i) {
@@ -108,9 +108,9 @@ TYPED_TEST(TileTest, ConstructorConst) {
 
   for (const auto m : sizes) {
     for (const auto n : sizes) {
-      SizeType min_ld = std::max(1, m);
+      SizeType min_ld = std::max<SizeType>(1, m);
       for (const SizeType ld : {min_ld, min_ld + 64}) {
-        memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+        memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
         TileElementSize size(m, n);
         for (SizeType j = 0; j < size.cols(); ++j) {
           for (SizeType i = 0; i < size.rows(); ++i) {
@@ -154,7 +154,7 @@ TYPED_TEST(TileTest, ConstructorExceptions) {
 
 TYPED_TEST(TileTest, MoveConstructor) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -170,7 +170,7 @@ TYPED_TEST(TileTest, MoveConstructor) {
 
 TYPED_TEST(TileTest, MoveConstructorConst) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -186,7 +186,7 @@ TYPED_TEST(TileTest, MoveConstructorConst) {
 
 TYPED_TEST(TileTest, MoveConstructorMix) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -202,7 +202,7 @@ TYPED_TEST(TileTest, MoveConstructorMix) {
 
 TYPED_TEST(TileTest, MoveAssignement) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -219,7 +219,7 @@ TYPED_TEST(TileTest, MoveAssignement) {
 
 TYPED_TEST(TileTest, MoveAssignementConst) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -236,7 +236,7 @@ TYPED_TEST(TileTest, MoveAssignementConst) {
 
 TYPED_TEST(TileTest, MoveAssignementMix) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -253,7 +253,7 @@ TYPED_TEST(TileTest, MoveAssignementMix) {
 
 TYPED_TEST(TileTest, ReferenceMix) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -269,7 +269,7 @@ TYPED_TEST(TileTest, ReferenceMix) {
 
 TYPED_TEST(TileTest, PointerMix) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -285,7 +285,7 @@ TYPED_TEST(TileTest, PointerMix) {
 
 TYPED_TEST(TileTest, PromiseToFuture) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -312,7 +312,7 @@ TYPED_TEST(TileTest, PromiseToFuture) {
 
 TYPED_TEST(TileTest, PromiseToFutureConst) {
   using Type = TypeParam;
-  memory::MemoryView<Type, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<Type, Device::CPU> memory_view(util::size_t::mul(ld, n));
 
   TileElementSize size(m, n);
   auto mem_view = memory_view;  // Copy the memory view to check the elements later.
@@ -345,16 +345,16 @@ TYPED_TEST(TileTest, CreateBuffer) {
   SizeType n = 87;
   SizeType ld = 133;
 
-  memory::MemoryView<TypeParam, Device::CPU> memory_view(ld * n);
+  memory::MemoryView<TypeParam, Device::CPU> memory_view(util::size_t::mul(ld, n));
   auto mem_view = memory_view;
 
   TileElementSize size(m, n);
   Tile<TypeParam, Device::CPU> tile(size, std::move(mem_view), ld);
 
-  auto tile_buffer = dlaf::common::make_buffer(tile);
+  auto tile_data = dlaf::common::make_data(tile);
 
-  EXPECT_EQ(tile.ptr({0, 0}), get_pointer(tile_buffer));
-  EXPECT_EQ(tile.size().cols(), get_num_blocks(tile_buffer));
-  EXPECT_EQ(tile.size().rows(), get_blocksize(tile_buffer));
-  EXPECT_EQ(tile.ld(), get_stride(tile_buffer));
+  EXPECT_EQ(tile.ptr({0, 0}), data_pointer(tile_data));
+  EXPECT_EQ(tile.size().cols(), data_nblocks(tile_data));
+  EXPECT_EQ(tile.size().rows(), data_blocksize(tile_data));
+  EXPECT_EQ(tile.ld(), data_stride(tile_data));
 }

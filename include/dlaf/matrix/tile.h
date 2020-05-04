@@ -12,7 +12,8 @@
 
 #include <exception>
 #include <hpx/hpx.hpp>
-#include "dlaf/common/buffer.h"
+
+#include "dlaf/common/data_descriptor.h"
 #include "dlaf/matrix/index.h"
 #include "dlaf/memory/memory_view.h"
 #include "dlaf/types.h"
@@ -197,10 +198,26 @@ private:
 
 /// Create a common::Buffer from a Tile
 template <class T, Device device>
-auto create_buffer(const Tile<T, device>& tile) {
-  return common::Buffer<T*>(tile.ptr({0, 0}), to_sizet(tile.size().cols()), to_sizet(tile.size().rows()),
-                            to_sizet(tile.ld()));
+auto create_data(const Tile<T, device>& tile) {
+  return common::DataDescriptor<T>(tile.ptr({0, 0}), to_sizet(tile.size().cols()),
+                                   to_sizet(tile.size().rows()), to_sizet(tile.ld()));
 }
+
+/// ---- ETI
+
+#define DLAF_TILE_ETI(KWORD, DATATYPE, DEVICE) \
+  KWORD template class Tile<DATATYPE, DEVICE>; \
+  KWORD template class Tile<const DATATYPE, DEVICE>;
+
+DLAF_TILE_ETI(extern, float, Device::CPU)
+DLAF_TILE_ETI(extern, double, Device::CPU)
+DLAF_TILE_ETI(extern, std::complex<float>, Device::CPU)
+DLAF_TILE_ETI(extern, std::complex<double>, Device::CPU)
+
+// DLAF_TILE_ETI(extern, float, Device::GPU)
+// DLAF_TILE_ETI(extern, double, Device::GPU)
+// DLAF_TILE_ETI(extern, std::complex<float>, Device::GPU)
+// DLAF_TILE_ETI(extern, std::complex<double>, Device::GPU)
 
 }
 }

@@ -45,7 +45,7 @@ struct TestSizes {
   TileElementSize block_size;
 };
 
-std::vector<TestSizes> sizes_tests({
+const std::vector<TestSizes> sizes_tests({
     {{0, 0}, {11, 13}},
     {{3, 0}, {1, 2}},
     {{0, 1}, {7, 32}},
@@ -103,6 +103,8 @@ TYPED_TEST(MatrixUtilsTest, SetRandom) {
 
 template <class T>
 void check_is_hermitian(Matrix<const T, Device::CPU>& matrix, comm::CommunicatorGrid comm_grid) {
+  using dlaf::util::size_t::mul;
+
   const auto& distribution = matrix.distribution();
   const auto current_rank = distribution.rankIndex();
 
@@ -120,15 +122,17 @@ void check_is_hermitian(Matrix<const T, Device::CPU>& matrix, comm::Communicator
       if (current_rank == owner_original) {
         const auto& tile_original = matrix.read(index_tile_original).get();
         hpx::shared_future<Tile<const T, Device::CPU>> tile_transposed;
+        auto size_tile_transposed = transposed(tile_original.size());
 
         if (current_rank == owner_transposed) {
           tile_transposed = matrix.read(index_tile_transposed);
         }
         else {
-          Tile<T, Device::CPU> workspace(matrix.blockSize(),
-                                         memory::MemoryView<T, Device::CPU>(matrix.blockSize().rows() *
-                                                                            matrix.blockSize().cols()),
-                                         matrix.blockSize().rows());
+          Tile<T, Device::CPU> workspace(size_tile_transposed,
+                                               memory::MemoryView<T, Device::CPU>(
+                                                   mul(size_tile_transposed.rows(),
+                                                                           size_tile_transposed.cols())),
+                                               size_tile_transposed.rows());
 
           // recv from owner_transposed
           const auto sender_rank = comm_grid.rankFullCommunicator(owner_transposed);
@@ -157,9 +161,9 @@ void check_is_hermitian(Matrix<const T, Device::CPU>& matrix, comm::Communicator
 TYPED_TEST(MatrixUtilsTest, SetRandomHermitianPositiveDefinite) {
   std::vector<TestSizes> square_blocks_configs({
       {{0, 0}, {13, 13}},  // square null matrix
-      {{26, 26}, {2, 2}},  // square matrix multi block
-      {{2, 2}, {6, 6}},    // square matrix single block
-      {{4, 4}, {13, 13}},  // square matrix single block
+      {{5, 5}, {26, 26}},  // square matrix single block
+      {{9, 9}, {3, 3}},    // square matrix multi block "full-tile"
+      {{13, 13}, {3, 3}},  // square matrix multi block
   });
 
   auto globalSquareTestSize = [](const LocalElementSize& size, const comm::Size2D& grid_size) {

@@ -13,7 +13,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <memory>
-#ifdef WITH_CUDA
+#ifdef DLAF_WITH_CUDA
 #include <cuda_runtime.h>
 #endif
 
@@ -44,12 +44,8 @@ public:
   /// Memory of @p size elements of type @c T is allocated on the given device.
   template <class U = T,
             class = typename std::enable_if_t<!std::is_const<U>::value && std::is_same<T, U>::value>>
-  MemoryView(std::size_t size)
+  explicit MemoryView(std::size_t size)
       : memory_(std::make_shared<MemoryChunk<ElementType, device>>(size)), offset_(0), size_(size) {}
-
-  template <class U = T,
-            class = typename std::enable_if_t<!std::is_const<U>::value && std::is_same<T, U>::value>>
-  MemoryView(int size) : MemoryView(to_sizet(size)) {}
 
   /// @brief Creates a MemoryView object from an existing memory allocation.
   ///
@@ -59,8 +55,6 @@ public:
   MemoryView(T* ptr, std::size_t size)
       : memory_(std::make_shared<MemoryChunk<ElementType, device>>(const_cast<ElementType*>(ptr), size)),
         offset_(0), size_(size) {}
-
-  MemoryView(T* ptr, int size) : MemoryView(ptr, to_sizet(size)) {}
 
   MemoryView(const MemoryView&) = default;
   template <class U = T,
@@ -167,5 +161,19 @@ private:
   std::size_t size_;
 };
 
-}  // namespace memory
-}  // namespace dlaf
+/// ---- ETI
+
+#define DLAF_MEMVIEW_ETI(KWORD, DATATYPE, DEVICE) KWORD template class MemoryView<DATATYPE, DEVICE>;
+
+DLAF_MEMVIEW_ETI(extern, float, Device::CPU)
+DLAF_MEMVIEW_ETI(extern, double, Device::CPU)
+DLAF_MEMVIEW_ETI(extern, std::complex<float>, Device::CPU)
+DLAF_MEMVIEW_ETI(extern, std::complex<double>, Device::CPU)
+
+// DLAF_MEMVIEW_ETI(extern, float, Device::GPU)
+// DLAF_MEMVIEW_ETI(extern, double, Device::GPU)
+// DLAF_MEMVIEW_ETI(extern, std::complex<float>, Device::GPU)
+// DLAF_MEMVIEW_ETI(extern, std::complex<double>, Device::GPU)
+
+}
+}
