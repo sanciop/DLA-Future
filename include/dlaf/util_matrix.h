@@ -35,9 +35,7 @@ namespace util {
 namespace internal {
 
 /// @brief Assert that the @p matrix is square.
-///
-/// When the assertion is enabled, terminates the program with an error message if the matrix is not
-/// square. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
+/// @pre @p matrix.size().rows() == @p matrix.size().cols()
 #define DLAF_ASSERT_SIZE_SQUARE(matrix)                                                               \
   DLAF_ASSERT((matrix.size().rows() == matrix.size().cols()), "Matrix ", #matrix, " ", matrix.size(), \
               " is not square")
@@ -51,49 +49,31 @@ namespace internal {
               #matrixB, " ", matrixB.size(), " does not have the same size")
 
 /// @brief Assert that the @p matrix tiles are square.
-///
-/// When the assertion is enabled, terminates the program with an error message if the tiles of matrix
-/// are not square. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
-#define DLAF_ASSERT_BLOCKSIZE_SQUARE(matrix)                                                \
-  DLAF_ASSERT((matrix.blockSize().rows() == matrix.blockSize().cols()), "Matrix ", #matrix, \
-              " blocksize ", matrix.blockSize(), " is not square")
-
-/// @brief Assert that @p matrixA and @p matrixB tiles have the same size.
-///
-/// When the assertion is enabled, terminates the program with an error message if the blocksize of the two
-/// matrices does not have the same size. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
-#define DLAF_ASSERT_BLOCKSIZE_EQ(matrixA, matrixB)                                                  \
-  DLAF_ASSERT((matrixA.blockSize() == matrixB.blockSize()), "Blocksizes of matrix ", #matrixA, " ", \
-              matrixA.blockSize(), " and ", #matrixB, " ", matrixB.blockSize(), " are not the same")
+/// @pre @p matrix.blockSize().rows() == @p matrix.blockSize().cols()
+#define DLAF_ASSERT_BLOCKSIZE_SQUARE(matrix)                                                          \
+  DLAF_ASSERT((matrix.blockSize().rows() == matrix.blockSize().cols()), "Block size in matrix ",      \
+              #matrix, " is not square (", matrix.blockSize().rows(), "x", matrix.blockSize().cols(), \
+              ").")
 
 /// @brief Assert that the @p matrix is distributed on a (1x1) grid (i.e. if it is a local matrix).
-///
-/// When the assertion is enabled, terminates the program with an error message if matrix is not local.
-/// This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
-#define DLAF_ASSERT_LOCALMATRIX(matrix)                                          \
-  DLAF_ASSERT((matrix.commGridSize() == comm::Size2D(1, 1)), "Matrix ", #matrix, \
-              " is not local (grid size: ", matrix.commGridSize(), ")")
+/// @pre @p matrix.distribution().commGridSize() == @p comm::Size2D(1, 1)
+#define DLAF_ASSERT_LOCALMATRIX(matrix)                                                         \
+  DLAF_ASSERT((matrix.distribution().commGridSize() == comm::Size2D(1, 1)), "Matrix ", #matrix, \
+              " is not local (grid size: ", matrix.distribution().commGridSize().rows(), "x",   \
+              matrix.distribution().commGridSize().cols(), ").")
 
 /// @brief Assert that the @p matrix is distributed according to the given communicator grid.
-///
-/// When the assertion is enabled, terminates the program with an error message if matrix is not on distributed
-/// according to the given communicator grid. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
-#define DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, matrix)                                          \
-  DLAF_ASSERT(((matrix.commGridSize() == grid.size()) && (matrix.rankIndex() == grid.rank())), \
-              "The matrix ", #matrix, " (rank: ", matrix.rankIndex(),                          \
-              ", grid size: ", matrix.commGridSize(),                                          \
-              ") is not distributed according to the communicator grid ", #grid,               \
-              " (rank: ", grid.rank(), ", grid size: ", grid.size(), ").")
-
-/// @brief Assert that @p matrixA and @p matrixB are distributed in the same way.
-///
-/// When the assertion is enabled, terminates the program with an error message if matrices are not
-/// distributed in the same way. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
-#define DLAF_ASSERT_DISTRIBUTED_EQ(matrixA, matrixB)                                                 \
-  DLAF_ASSERT(matrixA.distribution() == matrixB.distribution(), "The matrix ", #matrixA, " and ",    \
-              #matrixB, " are not distributed in the same way (rank: ", matrixA.rankIndex(), " vs ", \
-              matrixB.rankIndex(), ", grid size: ", matrixA.commGridSize(), " vs ",                  \
-              matrixB.commGridSize(), ")")
+/// @pre @p matrix.distribution().commGridSize() == @p grid.size()
+/// @pre @p matrix.distribution().rankIndex() == @p grid.rank()
+#define DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, matrix)                                                \
+  DLAF_ASSERT(((matrix.distribution().commGridSize() == grid.size()) &&                              \
+               (matrix.distribution().rankIndex() == grid.rank())),                                  \
+              "The matrix ", #matrix, " (rank: ", matrix.distribution().rankIndex(),                 \
+              ", grid size: ", matrix.distribution().commGridSize().rows(), "x",                     \
+              matrix.distribution().commGridSize().cols(),                                           \
+              ") is not distributed according to the communicator grid ", #grid,                     \
+              " (rank: ", grid.rank(), ", grid size: ", grid.size().rows(), "x", grid.size().cols(), \
+              ").")
 
 template <class MatrixConst, class Matrix, class Mat, class Location>
 void assertMultipliableMatrices(const MatrixConst& mat_a, const Matrix& mat_b, const Mat& mat_c,
@@ -142,10 +122,14 @@ void assertMultipliableMatrices(const MatrixConst& mat_a, const Matrix& mat_b, c
 }
 /// @brief Assert that the matrices @p mat_a and @p mat_b are multipliable and that matrix @p mat_c can
 /// store the result of this multiplication.
-///
-/// When the assertion is enabled, terminates the program with an error message if matrices @p mat_a and
-/// @p mat_b are not multipliable or if the matrix @p mat_c can not store the result. This assertion is
-/// enabled when **DLAF_ASSERT_ENABLE** is ON.
+/// @pre mat_a.size().rows() (after transposition operation) == mat_c.size().rows()
+/// @pre mat_a.size().cols() (after transposition operation) == mat_b.size().rows() (after transposition
+/// operation)
+/// @pre mat_b.size().cols() (after transposition operation) == mat_c.size().cols()
+/// @pre mat_a.blockSize().rows() (after transposition operation) == mat_c.blockSize().rows()
+/// @pre mat_a.blockSize().cols() (after transposition operation) == mat_b.blockSize().rows() (after
+/// transposition operation)
+/// @pre mat_b.blockSize().cols() (after transposition operation) == mat_c.blockSize().cols()
 #define DLAF_ASSERT_MULTIPLIABLE_MATRICES(a, b, c, opA, opB)                                           \
   ::dlaf::matrix::util::internal::assertMultipliableMatrices(a, b, c, opA, opB, SOURCE_LOCATION(), #a, \
                                                              #b, #c);

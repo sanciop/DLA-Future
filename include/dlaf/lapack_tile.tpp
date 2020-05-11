@@ -9,8 +9,9 @@
 //
 
 template <class T, Device device>
-long long potrfInfo(blas::Uplo uplo, const Tile<T, device>& a) {
-  DLAF_ASSERT((a.size().rows() == a.size().cols()), "POTRF: A is not square.");
+long long potrfInfo(blas::Uplo uplo, const Tile<T, device>& a) noexcept {
+  DLAF_ASSERT((a.size().rows() == a.size().cols()), "a is not square (", a.size().rows(),
+              " != ", a.size().cols(), ")");
 
   auto info = lapack::potrf(uplo, a.size().rows(), a.ptr(), a.ld());
   DLAF_ASSERT_HEAVY((info >= 0));
@@ -19,8 +20,8 @@ long long potrfInfo(blas::Uplo uplo, const Tile<T, device>& a) {
 }
 
 template <class T, Device device>
-void potrf(blas::Uplo uplo, const Tile<T, device>& a) {
+void potrf(blas::Uplo uplo, const Tile<T, device>& a) noexcept {
   auto info = potrfInfo(uplo, a);
 
-  DLAF_ASSERT((info == 0), "POTRF: A is not positive definite.")
+  DLAF_ASSERT((info == 0), "a is not positive definite");
 }
