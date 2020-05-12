@@ -35,36 +35,34 @@ namespace util {
 namespace internal {
 
 /// @brief Assert that the @p matrix is square.
-/// @pre @p matrix.size().rows() == @p matrix.size().cols()
+/// @pre matrix.size().rows() == matrix.size().cols()
 #define DLAF_ASSERT_SIZE_SQUARE(matrix)                                                               \
   DLAF_ASSERT((matrix.size().rows() == matrix.size().cols()), "Matrix ", #matrix, " ", matrix.size(), \
               " is not square")
 
 /// @brief Assert that @p matrixA and @p matrixB have the same size.
-///
-/// When the assertion is enabled, terminates the program with an error message if the two
-/// matrices does not have the same size. This assertion is enabled when **DLAF_ASSERT_ENABLE** is ON.
+/// @pre matrixA.size() == matrixB.size()
 #define DLAF_ASSERT_SIZE_EQ(matrixA, matrixB)                                                          \
   DLAF_ASSERT((matrixA.size() == matrixB.size()), "Matrices ", #matrixA, " ", matrixA.size(), " and ", \
               #matrixB, " ", matrixB.size(), " does not have the same size")
 
 /// @brief Assert that the @p matrix tiles are square.
-/// @pre @p matrix.blockSize().rows() == @p matrix.blockSize().cols()
+/// @pre matrix.blockSize().rows() == matrix.blockSize().cols()
 #define DLAF_ASSERT_BLOCKSIZE_SQUARE(matrix)                                                          \
   DLAF_ASSERT((matrix.blockSize().rows() == matrix.blockSize().cols()), "Block size in matrix ",      \
               #matrix, " is not square (", matrix.blockSize().rows(), "x", matrix.blockSize().cols(), \
               ").")
 
 /// @brief Assert that the @p matrix is distributed on a (1x1) grid (i.e. if it is a local matrix).
-/// @pre @p matrix.distribution().commGridSize() == @p comm::Size2D(1, 1)
+/// @pre matrix.distribution().commGridSize() == comm::Size2D(1, 1)
 #define DLAF_ASSERT_LOCALMATRIX(matrix)                                                         \
   DLAF_ASSERT((matrix.distribution().commGridSize() == comm::Size2D(1, 1)), "Matrix ", #matrix, \
               " is not local (grid size: ", matrix.distribution().commGridSize().rows(), "x",   \
               matrix.distribution().commGridSize().cols(), ").")
 
 /// @brief Assert that the @p matrix is distributed according to the given communicator grid.
-/// @pre @p matrix.distribution().commGridSize() == @p grid.size()
-/// @pre @p matrix.distribution().rankIndex() == @p grid.rank()
+/// @pre matrix.distribution().commGridSize() == grid.size()
+/// @pre matrix.distribution().rankIndex() == grid.rank()
 #define DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, matrix)                                                \
   DLAF_ASSERT(((matrix.distribution().commGridSize() == grid.size()) &&                              \
                (matrix.distribution().rankIndex() == grid.rank())),                                  \
