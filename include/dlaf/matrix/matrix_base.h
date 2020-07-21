@@ -9,6 +9,9 @@
 //
 
 #pragma once
+
+#include <ostream>
+
 #include "dlaf/matrix/distribution.h"
 
 namespace dlaf {
@@ -50,7 +53,7 @@ public:
 
   /// Returns the 2D rank index of the process that stores the tile with global index @p global_tile.
   ///
-  /// @pre global_tile.isValid() and global_tile.isIn(nrTiles())
+  /// @pre global_tile.isIn(nrTiles()).
   comm::Index2D rankGlobalTile(const GlobalTileIndex& global_tile) const noexcept {
     return distribution_->rankGlobalTile(global_tile);
   }
@@ -81,13 +84,23 @@ protected:
 
   /// Returns the position in the vector of the index Tile.
   ///
-  /// @pre index.isValid() == true.
-  /// @pre index.isIn(localNrTiles()) == true.
+  /// @pre index.isIn(localNrTiles()).
   std::size_t tileLinearIndex(const LocalTileIndex& index) const noexcept {
-    assert(index.isValid() && index.isIn(distribution_->localNrTiles()));
+    DLAF_ASSERT_HEAVY(index.isIn(distribution_->localNrTiles()), "");
     using util::size_t::sum;
     using util::size_t::mul;
     return sum(index.row(), mul(distribution_->localNrTiles().rows(), index.col()));
+  }
+
+  /// Prints information about the matrix.
+  friend std::ostream& operator<<(std::ostream& out, const MatrixBase& matrix) {
+    // clang-format off
+    return out << "size="         << matrix.size()
+               << ", block_size=" << matrix.blockSize()
+               << ", tiles_grid=" << matrix.nrTiles()
+               << ", rank_index=" << matrix.rankIndex()
+               << ", comm_grid="  << matrix.commGridSize();
+    // clang-format on
   }
 
 private:

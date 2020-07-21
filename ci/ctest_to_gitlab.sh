@@ -16,6 +16,7 @@ stages:
 # Make one big allocation reused in all jobs
 variables:
   ALLOCATION_NAME: dlaf-ci-job-\$CI_PIPELINE_ID
+  SLURM_EXCLUSIVE: ''
 
 # Allocate the resources
 allocate:
@@ -46,8 +47,7 @@ JOB_TEMPLATE="
     PULL_IMAGE: 'NO'
     USE_MPI: 'YES'
     DISABLE_AFTER_SCRIPT: 'YES'
-  script: mpi-ctest -L {{LABEL}}
-  resource_group: daint-job"
+  script: mpi-ctest -L {{LABEL}}"
 
 JOBS=""
 

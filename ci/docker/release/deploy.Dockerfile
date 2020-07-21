@@ -26,6 +26,7 @@ RUN mkdir ${BUILD} && cd ${BUILD} && \
     CC=/usr/local/mpich/bin/mpicc CXX=/usr/local/mpich/bin/mpicxx cmake ${SOURCE} \
       -DMKL_ROOT=/opt/intel/compilers_and_libraries/linux/mkl \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DCMAKE_CXX_FLAGS="-Werror" \
       -DDLAF_WITH_CUDA=OFF \
       -DDLAF_WITH_MKL=ON \
       -DDLAF_WITH_TEST=ON \
@@ -74,8 +75,16 @@ RUN cd ${BUILD} && \
 
 FROM ubuntu:18.04
 
+ENV DEBIAN_FRONTEND noninteractive
+
 ARG BUILD
 ARG DEPLOY
+
+# tzdata is needed to print correct time
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+      tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder ${BUILD} ${BUILD}
 COPY --from=builder ${DEPLOY} ${DEPLOY}

@@ -27,7 +27,7 @@ SHELL ["/bin/bash", "-c"]
 RUN mkdir ${BUILD} && cd ${BUILD} && \
     CC=/usr/local/mpich/bin/mpicc CXX=/usr/local/mpich/bin/mpicxx cmake ${SOURCE} \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DCMAKE_CXX_FLAGS_DEBUG="-g -O0 -fprofile-arcs -ftest-coverage" \
+      -DCMAKE_CXX_FLAGS="-O0 -Werror -fprofile-arcs -ftest-coverage" \
       -DCMAKE_EXE_LINKER_FLAGS="-fprofile-arcs -ftest-coverage" \
       -DLAPACK_CUSTOM_TYPE=Custom \
       -DLAPACK_CUSTOM_INCLUDE_DIR=/usr/local/include \
@@ -60,20 +60,24 @@ RUN cd ${BUILD} && \
 # Multistage build, this is the final small image
 FROM ubuntu:18.04
 
+ENV DEBIAN_FRONTEND noninteractive
+
 ARG BUILD
 ARG SOURCE
 ARG DEPLOY
 
 # Install perl to make lcov happy
 # codecov upload needs curl + ca-certificates
+# tzdata is needed to print correct time
 # TODO: remove git after https://github.com/codecov/codecov-bash/pull/291
 #       or https://github.com/codecov/codecov-bash/pull/265 is merged
 RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -qq \
+    apt-get install -qq -y --no-install-recommends \
       perl \
       curl \
       ca-certificates \
-      git && \
+      git \
+      tzdata && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the executables and the codecov gcno files

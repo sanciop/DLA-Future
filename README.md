@@ -13,15 +13,34 @@
 - [GoogleTest](https://github.com/google/googletest) (optional; bundled) - unit testing
 - Doxygen (optional) - documentation
 
+## How to install DLA-Future with spack
+
+We provide a spack package DLA-Future that can be easily added to your own spack as follows:
+
+`spack repo add $DLAF_ROOT/spack`
+
+This will add a new repository with namespace `dlaf`.
+
+Example installation:
+
+`spack install dla-future ^intel-mkl`
+
+Notice that, for the package to work correctly, the HPX option `max_cpu_count` must be set accordingly to the platform,
+as it represents the maximum number of OS-threads.
+
+`spack install dla-future ^intel-mkl ^hpx max_cpu_count=256`
+
 ## How to use the library
 
-Using DLAF in a CMake project is extremly easy!
+Using DLAF in a CMake project is extremely easy!
 
 Let's use the variable `$DLAF_ROOT` for referring to the install path of DLAF.
 
 Configure your project with:
 
-`cmake -DDLAF_DIR="$DLAF_ROOT/lib/cmake" ..`
+```bash
+cmake -DDLAF_DIR="$DLAF_ROOT/lib/cmake" ..
+```
 
 Then, it is just as simple as:
 
@@ -31,6 +50,25 @@ find_package(DLAF)
 # ...
 
 target_link_libraries(<your_target> PRIVATE DLAF)
+```
+
+## How to generate the documentation
+
+The documentation can be built together with the project by enabling its generation with the flag `BUILD_DOC=on` and then use the `doc` target to eventually generate it.
+
+```bash
+# from the build folder, if you have already configured the CMake project
+cmake -DBUILD_DOC=on .
+make doc
+```
+
+Alternatively, the documentation can be generated independently by using `doc/Doxyfile.in`, which is a template configuration file in which you have to replace the text `${DLAF_SOURCE_DIR}` with the root folder of DLAF containing the source code (e.g. where you cloned this repository).
+
+As a shortcut for this process a `doc/Makefile` is available, which automatically performs the substitution and then generates the documentation.
+
+```
+cd doc
+make doc
 ```
 
 ## Acknowledgements

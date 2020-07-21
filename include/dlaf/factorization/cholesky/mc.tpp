@@ -18,34 +18,32 @@ namespace dlaf {
 
 template <class T>
 void Factorization<Backend::MC>::cholesky(blas::Uplo uplo, Matrix<T, Device::CPU>& mat_a) {
-  // Check if matrix is square
-  DLAF_ASSERT_SIZE_SQUARE(mat_a);
-  // Check if block matrix is square
-  DLAF_ASSERT_BLOCKSIZE_SQUARE(mat_a);
-  // Check if matrix is stored on local memory
-  DLAF_ASSERT_LOCALMATRIX(mat_a);
+  DLAF_ASSERT(matrix::square_size(mat_a), mat_a);
+  DLAF_ASSERT(matrix::square_blocksize(mat_a), mat_a);
+  DLAF_ASSERT(matrix::local_matrix(mat_a), mat_a);
 
   if (uplo == blas::Uplo::Lower)
     internal::mc::cholesky_L(mat_a);
-  else
-    throw std::runtime_error("uplo = Upper not yet implemented");
+  else {
+    std::cout << "uplo = Upper not yet implemented" << std::endl;
+    std::abort();
+  }
 }
 
 template <class T>
 void Factorization<Backend::MC>::cholesky(comm::CommunicatorGrid grid, blas::Uplo uplo,
                                           Matrix<T, Device::CPU>& mat_a) {
-  // Check if matrix is square
-  DLAF_ASSERT_SIZE_SQUARE(mat_a);
-  // Check if block matrix is square
-  DLAF_ASSERT_BLOCKSIZE_SQUARE(mat_a);
-  // Check compatibility of the communicator grid and the distribution
-  DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, mat_a);
+  DLAF_ASSERT(matrix::square_size(mat_a), mat_a);
+  DLAF_ASSERT(matrix::square_blocksize(mat_a), mat_a);
+  DLAF_ASSERT(matrix::equal_process_grid(mat_a, grid), mat_a, grid);
 
   // Method only for Lower triangular matrix
   if (uplo == blas::Uplo::Lower)
     internal::mc::cholesky_L(grid, mat_a);
-  else
-    throw std::runtime_error("uplo = Upper not yet implemented");
+  else {
+    std::cout << "uplo = Upper not yet implemented" << std::endl;
+    std::abort();
+  }
 }
 
 }

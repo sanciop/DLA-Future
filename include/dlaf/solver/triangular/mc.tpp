@@ -27,18 +27,14 @@ template <class T>
 void Solver<Backend::MC>::triangular(blas::Side side, blas::Uplo uplo, blas::Op op, blas::Diag diag,
                                      T alpha, Matrix<const T, Device::CPU>& mat_a,
                                      Matrix<T, Device::CPU>& mat_b) {
-  // Check if matrix A is square
-  DLAF_ASSERT_SIZE_SQUARE(mat_a);
-  // Check if block matrix A is square
-  DLAF_ASSERT_BLOCKSIZE_SQUARE(mat_a);
-  // Check if matrix A is stored on local memory
-  DLAF_ASSERT_LOCALMATRIX(mat_a);
-  // Check if matrix B is stored on local memory
-  DLAF_ASSERT_LOCALMATRIX(mat_b);
+  DLAF_ASSERT(matrix::square_size(mat_a), mat_a);
+  DLAF_ASSERT(matrix::square_blocksize(mat_a), mat_a);
+  DLAF_ASSERT(matrix::local_matrix(mat_a), mat_a);
+  DLAF_ASSERT(matrix::local_matrix(mat_b), mat_b);
 
   if (side == blas::Side::Left) {
     // Check if A and B dimensions are compatible
-    DLAF_ASSERT_MULTIPLIABLE_MATRICES(mat_a, mat_b, mat_b, op, blas::Op::NoTrans);
+    DLAF_ASSERT(matrix::multipliable(mat_a, mat_b, mat_b, op, blas::Op::NoTrans), mat_a, mat_b, op);
 
     if (uplo == blas::Uplo::Lower) {
       if (op == blas::Op::NoTrans) {
@@ -63,7 +59,7 @@ void Solver<Backend::MC>::triangular(blas::Side side, blas::Uplo uplo, blas::Op 
   }
   else {
     // Check if A and B dimensions are compatible
-    DLAF_ASSERT_MULTIPLIABLE_MATRICES(mat_b, mat_a, mat_b, blas::Op::NoTrans, op);
+    DLAF_ASSERT(matrix::multipliable(mat_b, mat_a, mat_b, blas::Op::NoTrans, op), mat_a, mat_b, op);
 
     if (uplo == blas::Uplo::Lower) {
       if (op == blas::Op::NoTrans) {
@@ -93,18 +89,14 @@ void Solver<Backend::MC>::triangular(comm::CommunicatorGrid grid, blas::Side sid
                                      blas::Op op, blas::Diag diag, T alpha,
                                      Matrix<const T, Device::CPU>& mat_a,
                                      Matrix<T, Device::CPU>& mat_b) {
-  // Check if matrix A is square
-  DLAF_ASSERT_SIZE_SQUARE(mat_a);
-  // Check if block matrix A is square
-  DLAF_ASSERT_BLOCKSIZE_SQUARE(mat_a);
-  // Check compatibility of the communicator grid and the distribution of matrix A
-  DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, mat_a);
-  // Check compatibility of the communicator grid and the distribution of matrix B
-  DLAF_ASSERT_DISTRIBUTED_ON_GRID(grid, mat_b);
+  DLAF_ASSERT(matrix::square_size(mat_a), mat_a);
+  DLAF_ASSERT(matrix::square_blocksize(mat_a), mat_a);
+  DLAF_ASSERT(matrix::equal_process_grid(mat_a, grid), mat_a, grid);
+  DLAF_ASSERT(matrix::equal_process_grid(mat_b, grid), mat_b, grid);
 
   if (side == blas::Side::Left) {
     // Check if A and B dimensions are compatible
-    DLAF_ASSERT_MULTIPLIABLE_MATRICES(mat_a, mat_b, mat_b, op, blas::Op::NoTrans);
+    DLAF_ASSERT(matrix::multipliable(mat_a, mat_b, mat_b, op, blas::Op::NoTrans), mat_a, mat_b, op);
 
     if (uplo == blas::Uplo::Lower) {
       if (op == blas::Op::NoTrans) {
@@ -113,42 +105,49 @@ void Solver<Backend::MC>::triangular(comm::CommunicatorGrid grid, blas::Side sid
       }
       else {
         // Left Lower Trans/ConjTrans
-        throw std::runtime_error("Distributed Left Lower Trans/ConjTrans case not yet implemented");
+        std::cout << "Distributed Left Lower Trans/ConjTrans case not yet implemented" << std::endl;
+        std::abort();
       }
     }
     else {
       if (op == blas::Op::NoTrans) {
         // Left Upper NoTrans
-        throw std::runtime_error("Distributed Left Upper NoTrans case not yet implemented");
+        std::cout << "Distributed Left Upper NoTrans case not yet implemented" << std::endl;
+        std::abort();
       }
       else {
         // Left Upper Trans/ConjTrans
-        throw std::runtime_error("Distributed Left Upper Trans/ConjTrans case not yet implemented");
+        std::cout << "Distributed Left Upper Trans/ConjTrans case not yet implemented" << std::endl;
+        std::abort();
       }
     }
   }
   else {
     // Check if A and B dimensions are compatible
-    DLAF_ASSERT_MULTIPLIABLE_MATRICES(mat_b, mat_a, mat_b, blas::Op::NoTrans, op);
+    DLAF_ASSERT(matrix::multipliable(mat_a, mat_b, mat_b, blas::Op::NoTrans, op), mat_a, mat_b, op);
 
     if (uplo == blas::Uplo::Lower) {
       if (op == blas::Op::NoTrans) {
         // Right Lower NoTrans
-        throw std::runtime_error("Distributed Right Lower NoTrans case not yet implemented");
+        std::cout << "Distributed Right Lower NoTrans case not yet implemented" << std::endl;
+        std::abort();
       }
       else {
         // Right Lower Trans/ConjTrans
-        throw std::runtime_error("Distributed Right Lower Trans/ConjTrans case not yet implemented");
+        std::cout << "Distributed Right Lower Trans/ConjTrans case not yet implemented" << std::endl;
+        std::abort();
       }
     }
     else {
       if (op == blas::Op::NoTrans) {
         // Right Upper NoTrans
-        throw std::runtime_error("Distributed Right Upper NoTrans case not yet implemented");
+        std::cout << "Distributed Right Upper NoTrans case not yet implemented" << std::endl;
+        std::abort();
       }
       else {
         // Right Upper Trans/ConjTrans
-        throw std::runtime_error("Distributed Right Upper Trans/ConjTrans case not yet implemented");
+        std::cout << "Distributed Right Upper Trans/ConjTrans case not yet implemented" << std::endl;
+        std::abort();
       }
     }
   }

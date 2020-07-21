@@ -25,7 +25,7 @@ SHELL ["/bin/bash", "-c"]
 RUN mkdir ${BUILD} && cd ${BUILD} && \
     CC=/usr/local/mpich/bin/mpicc CXX=/usr/local/mpich/bin/mpicxx cmake ${SOURCE} \
       -DCMAKE_BUILD_TYPE=Debug \
-      -DCMAKE_CXX_FLAGS_DEBUG="-g -Og -fno-omit-frame-pointer" \
+      -DCMAKE_CXX_FLAGS="-Og -Werror -fno-omit-frame-pointer" \
       -DLAPACK_CUSTOM_TYPE=Custom \
       -DLAPACK_CUSTOM_INCLUDE_DIR=/usr/local/include \
       -DLAPACK_CUSTOM_LIBRARY=openblas \
@@ -55,8 +55,16 @@ RUN cd ${BUILD} && \
 
 FROM ubuntu:18.04
 
+ENV DEBIAN_FRONTEND noninteractive
+
 ARG BUILD
 ARG DEPLOY
+
+# tzdata is needed to print correct time
+RUN apt-get update -qq && \
+    apt-get install -qq -y --no-install-recommends \
+      tzdata && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder ${BUILD} ${BUILD}
 COPY --from=builder ${DEPLOY} ${DEPLOY}
