@@ -1,2 +1,7 @@
 repo:
   namespace: 'dlaf'
+  packages:
+    dlaf-future:
+       package.py
+    dlaf-future-ci:
+       package.py       
