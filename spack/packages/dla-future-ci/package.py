@@ -15,7 +15,7 @@ class DlaFutureCi(CMakePackage):
     maintainers = ['teonnik', 'Sely85']
 
     sources_root = path.abspath(path.join(path.dirname(__file__), '../../../'))
-    version('file:///{}'.format(sources_root))
+    version('file://{}'.format(sources_root))
 
     variant('cuda', default=False,
             description='Use the GPU/cuBLAS back end.')
