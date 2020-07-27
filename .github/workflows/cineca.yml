@@ -28,7 +28,7 @@ jobs:
            if [ `spack find | grep -c  dla-future` -eq 1 ]; then spack uninstall -y --all dla-future ; fi
            spack clean -a 
            spack install -v --test=root dla-future-ci ~cuda ^intel-mkl ^hpx~cuda max_cpu_count=128 ^openmpi@3.1.0 2>&1 | tee spack.log
-           spack uninstall -y --all dla-future;
+           spack uninstall -y --all dla-future-ci;
            spack repo remove $GITHUB_WORKSPACE/spack
            echo "==== TEST OUTCOMES ===="
            grep -A 80 "Running tests" spack.log
