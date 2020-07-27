@@ -22,8 +22,14 @@ jobs:
     - name: run-tests
       run: |
            source /galileo/home/userinternal/clatini0/spack/spack/share/spack/setup-env.sh
-           spack uninstall dla-future
+           ls $GITHUB_WORKSPACE
+           spack repo add $GITHUB_WORKSPACE/spack
+           rm -f spack.log
+           if [ `spack find | grep -c  dla-future` -eq 1 ]; then spack uninstall -y --all dla-future ; fi
            spack clean -a 
-           spack install -v --test=root --log-file=tests.log ~cuda ^intel-mkl ^hpx~cuda max_cpu_count=128 ^openmpi@3.1.0
-           grep -A 80 "Running tests" tests.log
+           spack install -v --test=root dla-future-ci ~cuda ^intel-mkl ^hpx~cuda max_cpu_count=128 ^openmpi@3.1.0 2>&1 | tee spack.log
+           spack uninstall -y --all dla-future-ci;
+           spack repo remove $GITHUB_WORKSPACE/spack
+           echo "==== TEST OUTCOMES ===="
+           grep -A 80 "Running tests" spack.log
            
