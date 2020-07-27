@@ -6,7 +6,7 @@
 from os import path
 from spack import *
 
-class DlaFuture(CMakePackage):
+class DlaFutureCi(CMakePackage):
     """The DLAF package provides DLA-Future library: Distributed Linear Algebra with Future"""
 
     homepage = "https://github.com/eth-cscs/DLA-Future.git/wiki"
@@ -14,7 +14,7 @@ class DlaFuture(CMakePackage):
 
     maintainers = ['teonnik', 'Sely85']
 
-    sources_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
+    sources_root = path.abspath(path.join(path.dirname(__file__), '../../../'))
     version('file:///{}'.format(sources_root))
 
     variant('cuda', default=False,
