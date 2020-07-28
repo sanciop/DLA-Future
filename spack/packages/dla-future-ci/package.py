@@ -3,19 +3,28 @@
 #
 # SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-from os import path
+from os import path, environ
 from spack import *
+
+try:
+	server_url = environ['GITHUB_SERVER_URL']
+	repo = environ['GITHUB_REPOSITORY']
+        commit_sha  = environ['GITHUB_SHA']
+	git_url = path.join(server_url, repo)
+except KeyError as e:
+       raise InstallError('This package can only be installed within a GitHub action run. {} environment variable must be defined.'.format(e))
+
 
 class DlaFutureCi(CMakePackage):
     """The DLAF package provides DLA-Future library: Distributed Linear Algebra with Future"""
 
     homepage = "https://github.com/eth-cscs/DLA-Future.git/wiki"
-    git      = "https://github.com/eth-cscs/DLA-Future.git"
+    git      = git_url
 
     maintainers = ['teonnik', 'Sely85']
 
     sources_root = path.abspath(path.join(path.dirname(__file__), '../../../'))
-    version('file://{}'.format(sources_root))
+    version('current-ci', commit=commit_sha)
 
     variant('cuda', default=False,
             description='Use the GPU/cuBLAS back end.')
